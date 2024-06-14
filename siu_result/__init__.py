@@ -17,13 +17,11 @@ __all__ = ("Scraper",)
 T = TypeVar("T")
 
 
-async def retry(
-    coro: Awaitable[T], *, exceptions: list[type[BaseException]], action: Awaitable[Any]
-) -> T:
+async def retry(coro: Awaitable[T], *, action: Awaitable[Any]) -> T:
     while True:
         try:
             res = await coro
-        except* exceptions:
+        except TimeoutError:
             await action
         else:
             return res
@@ -93,7 +91,6 @@ class Scraper:
 
         src = await retry(
             page.locator(self.RESULT_BTN_XPATH).get_attribute("href", timeout=50),
-            exceptions=[TimeoutError],
             action=click_res,
         )
 
